@@ -1,0 +1,7 @@
+uart.c:25:5:__io_putchar	1
+uart.c:31:6:uart2_tx_init	1
+uart.c:59:6:uart2_Rxtx_init	1
+uart.c:96:13:uart_set_baudrate	1
+uart.c:101:17:compute_uart_bd	1
+uart.c:106:6:uart2_read	2
+uart.c:113:6:uart2_write	2

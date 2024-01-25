@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include "stm32f4xx.h"
+#include "uart.h"
+#include "adc.h"
+
+#define ADC_RX_BUFF_SIZE 12
+#define UART_TX_BUFF_SIZE 12
+
+uint16_t ADC_RX_BUFF[ADC_RX_BUFF_SIZE];
+
+uint8_t adcBufferWriteIndex = 0;
+uint8_t adcBufferReadIndex = 0;
+
+uint8_t UART_TX_BUFF[UART_TX_BUFF_SIZE];
+
+// Function prototypes
+void uart_dma_send(const void *data, uint16_t size);
+
+void DMA1_Stream6_IRQHandler(void)
+{
+    // Check for transfer complete interrupt
+    if (DMA1->HISR & (1U << 21))
+    {
+        // Clear flag
+        DMA1->HIFCR |= (1U << 21);
+
+        // Update adcBufferReadIndex
+        adcBufferReadIndex = (adcBufferReadIndex + 1) % ADC_RX_BUFF_SIZE; // Move to the next location in the circular buffer
+
+        // Start the next UART DMA transfer
+        if (adcBufferReadIndex != adcBufferWriteIndex)
+        {
+            uint16_t dataToSend = ADC_RX_BUFF[adcBufferReadIndex];
+
+            // Start UART DMA transfer here
+            uart_dma_send(&dataToSend, sizeof(dataToSend));
+        }
+    }
+}
+
+int main(void)
+{
+    uart2_Rxtx_init();
+    dma_uart_init((uint32_t)UART_TX_BUFF, (uint32_t)&USART2->DR, UART_TX_BUFF_SIZE);
+
+    pa1_adc_int();
+    dma_init();
+    dma_config((uint32_t)&ADC1->DR, (uint32_t)ADC_RX_BUFF, ADC_RX_BUFF_SIZE);
+
+    start_conversion();
+
+    while (1)
+    {
+        // The main loop can perform other tasks if needed
+    }
+
+    return 0;
+}
+
+void uart_dma_send(const void *data, uint16_t size)
+{
+    // Make sure that the previous transfer is complete
+    while (!(DMA1_Stream6->CR & (1U << 16))) {}
+
+    // Configure DMA1_Stream6 for UART DMA transfer
+    DMA1_Stream6->NDTR = size;
+    DMA1_Stream6->M0AR = (uint32_t)data;
+
+    // Start the DMA transfer
+    DMA1_Stream6->CR |= (1U << 0);
+}

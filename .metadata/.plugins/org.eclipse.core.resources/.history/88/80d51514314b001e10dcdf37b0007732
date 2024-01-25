@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include "stm32f4xx.h"
+#include "uart.h"
+#include "adc.h"
+
+#define ADC_RX_BUFF_SIZE 12
+#define UART_TX_BUFF_SIZE 12
+
+uint16_t ADC_RX_BUFF[ADC_RX_BUFF_SIZE];
+uint8_t UART_TX_BUFF[UART_TX_BUFF_SIZE];
+
+//static void dma_adc_init(uint32_t source, uint32_t dest, uint16_t size);
+//static void dma_uart_init(uint32_t source, uint32_t dest, uint16_t size);
+
+//static void dma_callback(void);
+void DMA1_Stream6_IRQHandler(void);
+
+
+int main(void)
+{
+	uart2_Rxtx_init();
+	dma1_strem6_init((uint32_t) UART_TX_BUFF, (uint32_t)&USART2->DR,  UART_TX_BUFF_SIZE);
+
+	pa1_adc_int();
+	dma_init();
+	dma_config((uint32_t) &ADC1->DR, (uint32_t) ADC_RX_BUFF, ADC_RX_BUFF_SIZE);
+
+	start_conversion();
+	//adc_read();
+
+	//uart2_Rxtx_init();
+
+	while(1)
+	{
+		DMA1_Stream6->NDTR = UART_TX_BUFF_SIZE;
+		DMA1_Stream6->CR |= (1U << 0);
+	}
+
+	return 0;
+}
+/*
+static void dma_callback(void)
+{
+	dma1_strem6_init((uint32_t) ADC_DATA, (uint32_t)&USART2->DR,  31);
+}
+*/
+void DMA1_Stream6_IRQHandler(void)
+{
+	// Check for transfer complete interrupt
+	if(DMA1->HISR & (1U << 21))
+	{
+		// Clear flag
+		DMA1->HIFCR |= (1U << 21);
+		// Do something
+		//dma_callback();
+	}
+}
+
+
+

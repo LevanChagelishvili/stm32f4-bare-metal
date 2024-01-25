@@ -1,0 +1,10 @@
+13:55:57 **** Incremental Build of configuration Debug for project ADC_DMA_DSP ****
+make -j4 all 
+arm-none-eabi-size   ADC_DMA_DSP.elf 
+   text	   data	    bss	    dec	    hex	filename
+   1796	     32	   1592	   3420	    d5c	ADC_DMA_DSP.elf
+Finished building: default.size.stdout
+ 
+
+13:55:57 Build Finished. 0 errors, 0 warnings. (took 234ms)
+

@@ -1,0 +1,5 @@
+../Src/adc.c:4:6:pa1_adc_int	4	static
+../Src/adc.c:42:6:dma_init	4	static
+../Src/adc.c:63:6:dma_config	24	static
+../Src/adc.c:78:6:start_conversion	4	static
+../Src/adc.c:88:10:adc_read	4	static
